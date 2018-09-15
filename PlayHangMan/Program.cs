@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace PlayHangMan
 {
@@ -6,6 +7,8 @@ namespace PlayHangMan
     {
         static void Main(string[] args)
         {
+            bool gameOver = false;
+
             string[] alerts = {@" .----------------.  .----------------.  .-----------------. .----------------.  .----------------.  .----------------.  .-----------------.
 | .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |
 | |  ____  ____  | || |      __      | || | ____  _____  | || |    ______    | || | ____    ____ | || |      __      | || | ____  _____  | |
@@ -19,12 +22,12 @@ namespace PlayHangMan
  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------' ",
                                @" .----------------.  .----------------.  .----------------.   .----------------.  .----------------.  .-----------------. .----------------. 
 | .--------------. || .--------------. || .--------------. | | .--------------. || .--------------. || .--------------. || .--------------. |
-| |  ____  ____  | || |     ____     | || | _____  _____ | | | | _____  _____ | || |     _____    | || | ____  _____  | || |              | |
-| | |_  _||_  _| | || |   .'    `.   | || ||_   _||_   _|| | | ||_   _||_   _|| || |    |_   _|   | || ||_   \|_   _| | || |      _       | |
+| |  ____  ____  | || |     ____     | || | _____  _____ | | | | _____  _____ | || |     _____    | || | ____  _____  | || |      _       | |
+| | |_  _||_  _| | || |   .'    `.   | || ||_   _||_   _|| | | ||_   _||_   _|| || |    |_   _|   | || ||_   \|_   _| | || |     | |      | |
 | |   \ \  / /   | || |  /  .--.  \  | || |  | |    | |  | | | |  | | /\ | |  | || |      | |     | || |  |   \ | |   | || |     | |      | |
 | |    \ \/ /    | || |  | |    | |  | || |  | '    ' |  | | | |  | |/  \| |  | || |      | |     | || |  | |\ \| |   | || |     | |      | |
-| |    _|  |_    | || |  \  `--'  /  | || |   \ `--' /   | | | |  |   /\   |  | || |     _| |_    | || | _| |_\   |_  | || |     | |      | |
-| |   |______|   | || |   `.____.'   | || |    `.__.'    | | | |  |__/  \__|  | || |    |_____|   | || ||_____|\____| | || |     |_|      | |
+| |    _|  |_    | || |  \  `--'  /  | || |   \ `--' /   | | | |  |   /\   |  | || |     _| |_    | || | _| |_\   |_  | || |     |_|      | |
+| |   |______|   | || |   `.____.'   | || |    `.__.'    | | | |  |__/  \__|  | || |    |_____|   | || ||_____|\____| | || |      _       | |
 | |              | || |              | || |              | | | |              | || |              | || |              | || |     (_)      | |
 | '--------------' || '--------------' || '--------------' | | '--------------' || '--------------' || '--------------' || '--------------' |
  '----------------'  '----------------'  '----------------'   '----------------'  '----------------'  '----------------'  '----------------' ",
@@ -50,14 +53,14 @@ namespace PlayHangMan
 | |   |_____|    | |
 | |              | |
 | '--------------' |
- '----------------' ", @".----------------.
+ '----------------' ", @" .----------------. 
 | .--------------. |
-| | _____ | |
+| |    _____     | |
 | |   / ___ `.   | |
-| |  | _ / ___) |   | |
-| |   .'____.' | |
-| |  / / ____ | |
-| |  | _______ |   | |
+| |  |_/___) |   | |
+| |   .'____.'   | |
+| |  / /____     | |
+| |  |_______|   | |
 | |              | |
 | '--------------' |
  '----------------' ", @" .----------------. 
@@ -92,8 +95,85 @@ namespace PlayHangMan
 | '--------------' |
  '----------------' " };
 
-            Console.WriteLine(alerts[0]);
-            
+            string startWord = "guess";             // change guess to any word you want
+            startWord = startWord.ToLower();
+            string currentGuess = string.Empty;
+            string guessedLetters = string.Empty;
+
+            char[] dashedStartWord = new string('-', startWord.Length).ToCharArray();
+
+            int guessesLeft = 5;
+            int violations = 0;
+
+            Console.CursorVisible = false;
+
+            for (int i = counters.Length; i > 0; i--)
+            {
+                Console.WriteLine(alerts[0]);
+                Console.WriteLine(counters[i - 1]);
+                Thread.Sleep(1500);
+                Console.Clear();
+            }
+
+            while (!gameOver)
+            {
+                Console.CursorVisible = false;
+                Console.Clear();
+                Console.WriteLine("Can you guess this word: {0}", new string(dashedStartWord));
+                Console.WriteLine("Guessed letters: {0}", guessedLetters);
+                Console.WriteLine("You have {0} wrong guesses left.", guessesLeft);
+                Console.WriteLine();
+                Console.CursorVisible = true;
+                Console.Write("What is your next guess: ");
+
+                currentGuess = Console.ReadLine().ToLower();
+                guessedLetters += currentGuess[0] + ", ";
+
+                if (currentGuess.Length > 1)
+                {
+                    if (violations >=1)
+                    {
+                        guessesLeft--;
+                    }
+
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    Console.WriteLine("\nYou can only guess one letter");
+                    Console.WriteLine("You will lose two guesses if you try that again");
+                    Thread.Sleep(3000);
+                    Console.ResetColor();
+
+                    violations++;
+                }
+
+                if (startWord.Contains(currentGuess[0].ToString()))
+                {
+                    for (int i = 0; i < startWord.Length; i++)
+                    {
+                        if (startWord[i] == currentGuess[0])
+                        {
+                            dashedStartWord[i] = currentGuess[0];
+                        }
+                    }
+                    if (!new string(dashedStartWord).Contains("-"))
+                    {
+                        gameOver = true;
+                        Console.Clear();
+                        Console.WriteLine("You guessed the correct word : {0}", startWord);
+                        Console.WriteLine(alerts[1]);
+                    }
+                }
+                else
+                {
+                    guessesLeft--;
+                }
+
+                if (new string(dashedStartWord).Contains("-") && guessesLeft == 0)
+                {
+                    gameOver = true;
+                    Console.Clear();
+                    Console.WriteLine(alerts[2]);
+                }
+            }
         }
     }
 }
